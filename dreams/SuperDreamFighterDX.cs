@@ -12,7 +12,7 @@ namespace dreams
     // ReSharper disable once InconsistentNaming because mod api
     public class SuperDreamFighterDX : Mod <dream_save_data, dream_settings>, ITogglableMod
     {
-        public const string VERSION = "0.2.3";
+        public const string VERSION = "0.0.2";
         public const int LOAD_ORDER = 30;
 
         // Real arcade lovers have both machines.
@@ -32,6 +32,8 @@ namespace dreams
             {
                 ver = " GOTY " + ver;
             }
+            Log("Version is " + ver);
+            
             return ver;
         }
         
@@ -74,8 +76,9 @@ namespace dreams
             addComponent();
         }
 
-        private void addComponent()
+        private static void addComponent()
         {
+            GameManager.instance.gameObject.AddComponent<unending_dreams>();
             // add components here
         }
 

@@ -56,6 +56,7 @@
     <Compile Include="dream_settings.cs" />
     <Compile Include="SuperDreamFighterDX.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="unending_dreams.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
@@ -65,4 +66,9 @@
     <Target Name="AfterBuild">
     </Target>
     -->
+
+  <PropertyGroup>
+    <PostBuildEvent>echo "Copying mod"
+      cp "$(TargetPath)" "/home/eli/.local/share/Steam/steamapps/common/Hollow Knight/hollow_knight_Data/Managed/Mods"</PostBuildEvent>
+  </PropertyGroup>
 </Project>
