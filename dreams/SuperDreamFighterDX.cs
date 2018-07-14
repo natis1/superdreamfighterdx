@@ -1,7 +1,10 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Reflection;
+using ModCommon;
 using Modding;
+using On.TeamCherry;
 using UnityEngine;
 // ReSharper disable MemberCanBePrivate.Global because these could be used by other programs.
 // ReSharper disable UnusedMember.Global because used implicitly but importing resharper stuff is for dungos.
@@ -18,12 +21,29 @@ namespace dreams
         // Real arcade lovers have both machines.
         public bool igAvailable;
 
+        public static dream_save_data saveData;
+
         public override string GetVersion()
         {
             string ver = VERSION;
             int minAPI = 40;
             bool apiTooLow = Convert.ToInt32(ModHooks.Instance.ModVersion.Split('-')[1]) < minAPI;
-            bool noModCommon = !(from assembly in AppDomain.CurrentDomain.GetAssemblies() from type in assembly.GetTypes() where type.Namespace == "ModCommon" select type).Any();
+            bool noModCommon = true;
+
+            Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
+            foreach (Assembly assembly in assemblies)
+            {
+                try
+                {
+                    if (assembly.GetTypes().All(type => type.Namespace != "ModCommon")) continue;
+                    noModCommon = false;
+                    break;
+                }
+                catch
+                {
+                    Log(assembly.FullName + " failed to load.");
+                }
+            }
             
             if (apiTooLow) ver += " (Error: ModAPI too old)";
             if (noModCommon) ver += " (Error: Super Dream Fighter DX requires ModCommon)";
@@ -32,7 +52,7 @@ namespace dreams
             {
                 ver = " GOTY " + ver;
             }
-            Log("Version is " + ver);
+            Log("Version is" + ver);
             
             return ver;
         }
@@ -42,10 +62,15 @@ namespace dreams
             igAvailable = (from assembly in AppDomain.CurrentDomain.GetAssemblies() from type in assembly.GetTypes() where type.Namespace == "infinitegrimm" select type).Any();
             setupSettings();
             
+            /*
+            GameManager.instance.gameConfig.useSaveEncryption = false;
+            GameManager.instance.gameConfig.showTargetSceneNamesOnGates = true;
+            GameManager.instance.gameConfig.enableDebugButtons = true;
+            GameManager.instance.gameConfig.enableCheats = true;
+            */
+            
             ModHooks.Instance.AfterSavegameLoadHook += saveGame;
             ModHooks.Instance.NewGameHook += addComponent;
-            
-
             ModHooks.Instance.ApplicationQuitHook += SaveGlobalSettings;
         }
 
@@ -73,12 +98,23 @@ namespace dreams
 
         private void saveGame(SaveGameData data)
         {
+
             addComponent();
         }
 
-        private static void addComponent()
+        private void addComponent()
         {
+            if (Settings.SettingsVersion != version_info.SAVE_VER)
+            {
+                Settings.falseDreamLevel = 1;
+                Settings.kinDreamLevel = 1;
+                Settings.soulDreamLevel = 1;
+                Settings.SettingsVersion = version_info.SAVE_VER;
+            }
+            
+            saveData = Settings;
             GameManager.instance.gameObject.AddComponent<unending_dreams>();
+            GameManager.instance.gameObject.AddComponent<dream_manager>();
             // add components here
         }
 
