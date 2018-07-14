@@ -56,6 +56,7 @@
     <Compile Include="dream_manager.cs" />
     <Compile Include="dream_settings.cs" />
     <Compile Include="false_dream.cs" />
+    <Compile Include="global_vars.cs" />
     <Compile Include="soul_dream.cs" />
     <Compile Include="SuperDreamFighterDX.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

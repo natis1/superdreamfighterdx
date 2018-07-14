@@ -18,10 +18,10 @@ namespace dreams
             FloatValues.Clear();
             StringValues.Clear();
             
-            SettingsVersion = version_info.SETTINGS_VER;
+            settingsVersion = version_info.SETTINGS_VER;
         }
         
-        public int SettingsVersion { get => GetInt(); set => SetInt(value); }
+        public int settingsVersion { get => GetInt(); set => SetInt(value); }
     }
     
     public class dream_save_data : IModSettings
@@ -31,8 +31,12 @@ namespace dreams
         public int soulDreamLevel;
         public int kinDreamLevel;
         public int falseDreamLevel;
+        
+        public int soulDreamFails;
+        public int falseDreamFails;
+        public int kinDreamFails;
 
-        public int SettingsVersion;
+        public int settingsVersion;
 
 
     }

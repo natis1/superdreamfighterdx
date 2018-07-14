@@ -1,7 +1,6 @@
 ﻿using System;
 using HutongGames.PlayMaker;
 using ModCommon;
-using ModCommon.Util;
 using UnityEngine;
 
 namespace dreams
@@ -106,6 +105,12 @@ namespace dreams
             }
             
             falseController.StartSpeedMod();
+        }
+
+        public void restoreOrigValues()
+        {
+            falseController.RestoreOriginalSpeed();
+            falseController.SetActive(false);
         }
 
 

@@ -16,6 +16,8 @@ namespace dreams
         private soul_dream soulDream = null;
         private false_dream falseDream = null;
 
+        private const int FC_DREAMS_PER_LEVEL = 10;
+
         private int currentDream = 0;
         
         private void OnDestroy()
@@ -26,9 +28,55 @@ namespace dreams
         private void Start()
         {
             UnityEngine.SceneManagement.SceneManager.activeSceneChanged += dreamCheck;
+
+            ModHooks.Instance.BeforePlayerDeadHook += playerDies;
         }
-        
-        
+
+        private void playerDies()
+        {
+            if (currentDream != 0)
+            {
+                log("You died in the dream so you died in real life. Dream death is " + currentDream);
+                if ((currentDream & 1) != 0)
+                {
+                    global_vars.falseDreamFails++;
+                    if (global_vars.falseDreamFails > 2)
+                    {
+                        global_vars.falseDreamFails = 0;
+                        if (global_vars.falseDreamLevel > 1)
+                        {
+                            global_vars.falseDreamLevel--;
+                        }
+                    }
+                } else if ((currentDream & 2) != 0)
+                {
+                    global_vars.soulDreamFails++;
+                    if (global_vars.soulDreamFails > 2)
+                    {
+                        global_vars.soulDreamFails = 0;
+                        if (global_vars.soulDreamLevel > 1)
+                        {
+                            global_vars.soulDreamLevel--;
+                        }
+                    }
+                } else if ((currentDream & 4) != 0)
+                {
+                    global_vars.kinDreamFails++;
+                    if (global_vars.kinDreamFails > 2)
+                    {
+                        global_vars.kinDreamFails = 0;
+                        if (global_vars.kinDreamLevel > 1)
+                        {
+                            global_vars.kinDreamLevel--;
+                        }
+                    }
+                }
+
+                currentDream = 0;
+            }
+        }
+
+
         //TODO: figure out if you even need this lol.
         
         private void Update()
@@ -50,9 +98,29 @@ namespace dreams
 
         }
 
+        private static IEnumerator addDreamsDelay(int multiplier, int level)
+        {
+            yield return new WaitForSeconds(4f);
+            
+            PlayerData.instance.dreamOrbs += (level * multiplier);
+            PlayerData.instance.dreamOrbsSpent -= (level * multiplier);
+            if (global_vars.falseDreamLevel > 0)
+                EventRegister.SendEvent("DREAM ORB COLLECT");
+        }
+
         private void falseUpdate()
         {
+            if (falseDream.falseController == null) return;
+            HealthManager hm = falseDream.falseController.gameObject.GetComponent<HealthManager>();
+            if (hm.hp > 0) return;
             
+            falseDream.restoreOrigValues();
+            currentDream = 0;
+            log("Good job on beating level " + global_vars.falseDreamLevel);
+            StartCoroutine(addDreamsDelay(global_vars.falseDreamLevel, FC_DREAMS_PER_LEVEL));
+            global_vars.falseDreamLevel++;
+            global_vars.falseDreamFails = 0;
+
         }
 
         private void kinUpdate()
@@ -95,8 +163,8 @@ namespace dreams
 
             yield return null;
             falseKnight.PrintSceneHierarchyTree("falseknice.txt");
-            falseDream = new false_dream(falseKnight, SuperDreamFighterDX.saveData.falseDreamLevel);
-            StartCoroutine(displayEnemyLevel(SuperDreamFighterDX.saveData.soulDreamLevel, Color.green));
+            falseDream = new false_dream(falseKnight, global_vars.falseDreamLevel);
+            StartCoroutine(displayEnemyLevel(global_vars.falseDreamLevel, Color.green));
             
             currentDream = 1;
         }
@@ -113,8 +181,8 @@ namespace dreams
             
             yield return null;
             
-            soulDream = new soul_dream(soulMage, SuperDreamFighterDX.saveData.soulDreamLevel);            
-            StartCoroutine(displayEnemyLevel(SuperDreamFighterDX.saveData.soulDreamLevel, Color.blue));
+            soulDream = new soul_dream(soulMage, global_vars.soulDreamLevel);            
+            StartCoroutine(displayEnemyLevel(global_vars.soulDreamLevel, Color.blue));
             currentDream = 2;
         }
         
