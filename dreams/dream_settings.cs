@@ -35,9 +35,5 @@ namespace dreams
         public int soulDreamFails;
         public int falseDreamFails;
         public int kinDreamFails;
-
-        public int settingsVersion;
-
-
     }
 }

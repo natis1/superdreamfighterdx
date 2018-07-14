@@ -59,13 +59,12 @@ namespace dreams
             igAvailable = (from assembly in AppDomain.CurrentDomain.GetAssemblies() from type in assembly.GetTypes() where type.Namespace == "infinitegrimm" select type).Any();
             setupSettings();
             ModHooks.Instance.AfterSavegameLoadHook += saveGame;
-            ModHooks.Instance.NewGameHook += addComponent;
+            ModHooks.Instance.NewGameHook += newGame;
             ModHooks.Instance.ApplicationQuitHook += SaveGlobalSettings;
-            ModHooks.Instance.SavegameSaveHook += saveLocalData;
-            UnityEngine.SceneManagement.SceneManager.activeSceneChanged += resetModSaveData;
+            ModHooks.Instance.BeforeSavegameSaveHook += saveLocalData;
         }
 
-        private void saveLocalData(int id)
+        private void saveLocalData(SaveGameData data)
         {
             Settings.falseDreamFails = global_vars.falseDreamFails;
             Settings.falseDreamLevel = global_vars.falseDreamLevel;
@@ -73,7 +72,18 @@ namespace dreams
             Settings.kinDreamLevel = global_vars.kinDreamLevel;
             Settings.soulDreamFails = global_vars.soulDreamFails;
             Settings.soulDreamLevel = global_vars.soulDreamLevel;
-            //Settings.soulDreamLevel = global_vars;
+        }
+
+        private void newGame()
+        {
+            Settings.falseDreamFails = 0;
+            Settings.falseDreamLevel = 1;
+            Settings.kinDreamFails = 0;
+            Settings.kinDreamLevel = 1;
+            Settings.soulDreamFails = 0;
+            Settings.soulDreamLevel = 1;
+            
+            addComponent();
         }
 
         private void setupSettings()
@@ -119,11 +129,28 @@ namespace dreams
             global_vars.kinDreamLevel = Settings.kinDreamLevel;
             global_vars.soulDreamFails = Settings.soulDreamFails;
             global_vars.soulDreamLevel = Settings.soulDreamLevel;
+            
+            if (global_vars.falseDreamLevel < 1)
+            {
+                global_vars.falseDreamLevel = 1;
+            }
+            if (global_vars.kinDreamLevel < 1)
+            {
+                global_vars.kinDreamLevel = 1;
+            }
+
+            if (global_vars.soulDreamLevel < 1)
+            {
+                global_vars.soulDreamLevel = 1;
+            }
             addComponent();
         }
 
         private void addComponent()
         {
+            Log("Current levels are: FC " + global_vars.falseDreamLevel + " with " + global_vars.falseDreamFails + " fails");
+            Log("Lost Kin: " + global_vars.kinDreamLevel + " with " + global_vars.kinDreamFails + " fails");
+            Log("Soul Guy: " + global_vars.soulDreamLevel + " with " + global_vars.soulDreamFails + " fails");
             GameManager.instance.gameObject.AddComponent<unending_dreams>();
             GameManager.instance.gameObject.AddComponent<dream_manager>();
             // add components here
@@ -141,9 +168,7 @@ namespace dreams
             ModHooks.Instance.NewGameHook -= addComponent;
             
             ModHooks.Instance.ApplicationQuitHook -= SaveGlobalSettings;
-            ModHooks.Instance.SavegameSaveHook -= saveLocalData;
-            UnityEngine.SceneManagement.SceneManager.activeSceneChanged -= resetModSaveData;
-            
+            ModHooks.Instance.BeforeSavegameSaveHook -= saveLocalData;            
         }
 
     }

@@ -18,6 +18,8 @@ namespace dreams
 
         private const int FC_DREAMS_PER_LEVEL = 10;
 
+        private int damage;
+
         private int currentDream = 0;
         
         private void OnDestroy()
@@ -85,7 +87,7 @@ namespace dreams
             
             if ((currentDream & 1) != 0)
             {
-                falseUpdate();
+                //falseUpdate();
             } else if ((currentDream & 2) != 0)
             {
                 //GameObject.Find("Dream Mage Lord").GetComponent<CustomEnemySpeed>().ReloadStubbornFSMActions();
@@ -100,27 +102,12 @@ namespace dreams
 
         private static IEnumerator addDreamsDelay(int multiplier, int level)
         {
-            yield return new WaitForSeconds(4f);
+            yield return new WaitForSeconds(2f);
             
             PlayerData.instance.dreamOrbs += (level * multiplier);
             PlayerData.instance.dreamOrbsSpent -= (level * multiplier);
             if (global_vars.falseDreamLevel > 0)
                 EventRegister.SendEvent("DREAM ORB COLLECT");
-        }
-
-        private void falseUpdate()
-        {
-            if (falseDream.falseController == null) return;
-            HealthManager hm = falseDream.falseController.gameObject.GetComponent<HealthManager>();
-            if (hm.hp > 0) return;
-            
-            falseDream.restoreOrigValues();
-            currentDream = 0;
-            log("Good job on beating level " + global_vars.falseDreamLevel);
-            StartCoroutine(addDreamsDelay(global_vars.falseDreamLevel, FC_DREAMS_PER_LEVEL));
-            global_vars.falseDreamLevel++;
-            global_vars.falseDreamFails = 0;
-
         }
 
         private void kinUpdate()
@@ -232,6 +219,16 @@ namespace dreams
             
             Destroy(go);
             Destroy(canvas);
+        }
+
+        public void falseKill()
+        {
+            falseDream.restoreOrigValues();
+            currentDream = 0;
+            log("Good job on beating level " + global_vars.falseDreamLevel);
+            StartCoroutine(addDreamsDelay(global_vars.falseDreamLevel, FC_DREAMS_PER_LEVEL));
+            global_vars.falseDreamLevel++;
+            global_vars.falseDreamFails = 0;
         }
         
         private static void log(string str)

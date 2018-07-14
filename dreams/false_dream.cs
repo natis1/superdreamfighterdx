@@ -1,6 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using HutongGames.PlayMaker;
+using HutongGames.PlayMaker.Actions;
 using ModCommon;
+using ModCommon.Util;
 using UnityEngine;
 
 namespace dreams
@@ -8,6 +12,8 @@ namespace dreams
     public class false_dream
     {
         private readonly GameObject falseGuy;
+
+        public HealthManager falseHeadHM;
         //private GameObject 
 
         private double danceSpeed;
@@ -72,26 +78,23 @@ namespace dreams
         public false_dream(GameObject falseGuy, int level)
         {
             this.falseGuy = falseGuy;
-
+            falseHeadHM = this.falseGuy.FindGameObjectInChildren("Head").GetComponent<HealthManager>();
             realHPChecker = this.falseGuy.LocateMyFSM("Check Health");
-            //realHPChecker.GetState("Init").Transitions = new FsmTransition[0];
-            //realHPChecker.SetState("Init");
-            foreach (FsmInt i in realHPChecker.FsmVariables.IntVariables)
-            {
-                log("found int " + i.Name + " with value " + i.Value);
-            }
+
             
             calculateDifficultyFromLevel(level);
 
             log("hits to stun: " + hitsToStun + " hits to fast stun: " + hitsToFastStun + " health: " + maxHealth +
                 " dance speed: " + danceSpeed);
-
             falseController = this.falseGuy.GetOrAddComponent<CustomEnemySpeed>();
+            
             
             foreach (FsmInt i in realHPChecker.FsmVariables.IntVariables)
             {
                 i.Value = maxHealth;
             }
+            falseController.SetEnemyMaxHealth(maxHealth);
+            falseController.SetHealthManager(falseHeadHM);
             falseController.UpdateDanceSpeed(danceSpeed);
 
             foreach (CustomEnemySpeed.AnimationData a in ANIMATION_DATAS)
@@ -105,6 +108,17 @@ namespace dreams
             }
             
             falseController.StartSpeedMod();
+            
+            FsmState meme = falseGuy.LocateMyFSM("FalseyControl").GetState("Dream Return");
+            List<FsmStateAction> actions = meme.Actions.ToList();
+            actions.Add(new CallMethod()
+                {
+                    behaviour = GameManager.instance.gameObject.GetComponent<dream_manager>(),
+                    methodName = "falseKill",
+                    parameters = new FsmVar[0],
+                    everyFrame = false
+                });
+            meme.Actions = actions.ToArray();
         }
 
         public void restoreOrigValues()
