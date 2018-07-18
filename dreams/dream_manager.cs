@@ -30,8 +30,6 @@ namespace dreams
         private void Start()
         {
             UnityEngine.SceneManagement.SceneManager.activeSceneChanged += dreamCheck;
-
-            ModHooks.Instance.BeforePlayerDeadHook += playerDies;
         }
 
         private void playerDies()
@@ -41,35 +39,35 @@ namespace dreams
                 log("You died in the dream so you died in real life. Dream death is " + currentDream);
                 if ((currentDream & 1) != 0)
                 {
-                    global_vars.falseDreamFails++;
-                    if (global_vars.falseDreamFails > 2)
+                    global_vars.gameData.falseDreamFails++;
+                    if (global_vars.gameData.falseDreamFails > 2)
                     {
-                        global_vars.falseDreamFails = 0;
-                        if (global_vars.falseDreamLevel > 1)
+                        global_vars.gameData.falseDreamFails = 0;
+                        if (global_vars.gameData.falseDreamLevel > 1)
                         {
-                            global_vars.falseDreamLevel--;
+                            global_vars.gameData.falseDreamLevel--;
                         }
                     }
                 } else if ((currentDream & 2) != 0)
                 {
-                    global_vars.soulDreamFails++;
-                    if (global_vars.soulDreamFails > 2)
+                    global_vars.gameData.soulDreamFails++;
+                    if (global_vars.gameData.soulDreamFails > 2)
                     {
-                        global_vars.soulDreamFails = 0;
-                        if (global_vars.soulDreamLevel > 1)
+                        global_vars.gameData.soulDreamFails = 0;
+                        if (global_vars.gameData.soulDreamLevel > 1)
                         {
-                            global_vars.soulDreamLevel--;
+                            global_vars.gameData.soulDreamLevel--;
                         }
                     }
                 } else if ((currentDream & 4) != 0)
                 {
-                    global_vars.kinDreamFails++;
-                    if (global_vars.kinDreamFails > 2)
+                    global_vars.gameData.kinDreamFails++;
+                    if (global_vars.gameData.kinDreamFails > 2)
                     {
-                        global_vars.kinDreamFails = 0;
-                        if (global_vars.kinDreamLevel > 1)
+                        global_vars.gameData.kinDreamFails = 0;
+                        if (global_vars.gameData.kinDreamLevel > 1)
                         {
-                            global_vars.kinDreamLevel--;
+                            global_vars.gameData.kinDreamLevel--;
                         }
                     }
                 }
@@ -84,6 +82,11 @@ namespace dreams
         private void Update()
         {
             if (currentDream == 0) return;
+
+            if (HeroController.instance.playerData.health <= 0)
+            {
+                playerDies();
+            }
             
             if ((currentDream & 1) != 0)
             {
@@ -102,11 +105,13 @@ namespace dreams
 
         private static IEnumerator addDreamsDelay(int multiplier, int level)
         {
-            yield return new WaitForSeconds(2f);
+            yield return new WaitForSeconds(4f);
+            yield return new WaitForFinishedEnteringScene();
+            yield return new WaitForSeconds(0.3f);
             
             PlayerData.instance.dreamOrbs += (level * multiplier);
             PlayerData.instance.dreamOrbsSpent -= (level * multiplier);
-            if (global_vars.falseDreamLevel > 0)
+            if (global_vars.gameData.falseDreamLevel > 0)
                 EventRegister.SendEvent("DREAM ORB COLLECT");
         }
 
@@ -150,8 +155,8 @@ namespace dreams
 
             yield return null;
             falseKnight.PrintSceneHierarchyTree("falseknice.txt");
-            falseDream = new false_dream(falseKnight, global_vars.falseDreamLevel);
-            StartCoroutine(displayEnemyLevel(global_vars.falseDreamLevel, Color.green));
+            falseDream = new false_dream(falseKnight, global_vars.gameData.falseDreamLevel);
+            StartCoroutine(displayEnemyLevel(global_vars.gameData.falseDreamLevel, Color.green));
             
             currentDream = 1;
         }
@@ -168,18 +173,22 @@ namespace dreams
             
             yield return null;
             
-            soulDream = new soul_dream(soulMage, global_vars.soulDreamLevel);            
-            StartCoroutine(displayEnemyLevel(global_vars.soulDreamLevel, Color.blue));
+            soulDream = new soul_dream(soulMage, global_vars.gameData.soulDreamLevel);            
+            StartCoroutine(displayEnemyLevel(global_vars.gameData.soulDreamLevel, Color.blue));
             currentDream = 2;
         }
         
         private IEnumerator loadKinDream()
         {
-            GameObject lostKin = GameObject.Find("Infected Knight Dream");
+            GameObject lostKin = GameObject.Find("Lost Kin");
             while (lostKin == null)
             {
                 yield return null;
                 lostKin = GameObject.Find("Infected Knight Dream");
+                if (lostKin == null)
+                {
+                    lostKin = GameObject.Find("Lost Kin");
+                }
             }
 
             yield return null;
@@ -225,10 +234,10 @@ namespace dreams
         {
             falseDream.restoreOrigValues();
             currentDream = 0;
-            log("Good job on beating level " + global_vars.falseDreamLevel);
-            StartCoroutine(addDreamsDelay(global_vars.falseDreamLevel, FC_DREAMS_PER_LEVEL));
-            global_vars.falseDreamLevel++;
-            global_vars.falseDreamFails = 0;
+            log("Good job on beating level " + global_vars.gameData.falseDreamLevel);
+            StartCoroutine(addDreamsDelay(global_vars.gameData.falseDreamLevel, FC_DREAMS_PER_LEVEL));
+            global_vars.gameData.falseDreamLevel++;
+            global_vars.gameData.falseDreamFails = 0;
         }
         
         private static void log(string str)

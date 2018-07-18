@@ -13,7 +13,6 @@ namespace dreams
     {
         private readonly GameObject falseGuy;
 
-        public HealthManager falseHeadHM;
         //private GameObject 
 
         private double danceSpeed;
@@ -78,7 +77,6 @@ namespace dreams
         public false_dream(GameObject falseGuy, int level)
         {
             this.falseGuy = falseGuy;
-            falseHeadHM = this.falseGuy.FindGameObjectInChildren("Head").GetComponent<HealthManager>();
             realHPChecker = this.falseGuy.LocateMyFSM("Check Health");
 
             
@@ -94,7 +92,6 @@ namespace dreams
                 i.Value = maxHealth;
             }
             falseController.SetEnemyMaxHealth(maxHealth);
-            falseController.SetHealthManager(falseHeadHM);
             falseController.UpdateDanceSpeed(danceSpeed);
 
             foreach (CustomEnemySpeed.AnimationData a in ANIMATION_DATAS)
@@ -108,17 +105,20 @@ namespace dreams
             }
             
             falseController.StartSpeedMod();
-            
-            FsmState meme = falseGuy.LocateMyFSM("FalseyControl").GetState("Dream Return");
+            FsmState meme = falseGuy.LocateMyFSM("FalseyControl").GetState("Ready");
             List<FsmStateAction> actions = meme.Actions.ToList();
+            
+            log("Completed main false dream routine.");
             actions.Add(new CallMethod()
-                {
-                    behaviour = GameManager.instance.gameObject.GetComponent<dream_manager>(),
-                    methodName = "falseKill",
-                    parameters = new FsmVar[0],
-                    everyFrame = false
-                });
+            {
+                behaviour = GameManager.instance.gameObject.GetComponent<dream_manager>(),
+                methodName = "falseKill",
+                parameters = new FsmVar[0],
+                everyFrame = false
+            });
             meme.Actions = actions.ToArray();
+            
+            log("Added custom call method.");
         }
 
         public void restoreOrigValues()
@@ -131,7 +131,7 @@ namespace dreams
         private void calculateDifficultyFromLevel(int level)
         {
             danceSpeed = Math.Pow((double) level, 0.25) + 0.2;
-            double healthMod = Math.Pow((double) level, 0.8) + 0.2;
+            double healthMod = Math.Pow((double) level, 0.6) + 0.2;
             
             log("health mod is " + healthMod + " because level is " + level);
 

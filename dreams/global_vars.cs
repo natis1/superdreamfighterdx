@@ -7,12 +7,6 @@
         // ReSharper disable once UnusedMember.Global because reflection
         public static readonly int VERSION_INT = 2;
 
-        public static int soulDreamLevel;
-        public static int falseDreamLevel;
-        public static int kinDreamLevel;
-
-        public static int soulDreamFails;
-        public static int falseDreamFails;
-        public static int kinDreamFails;
+        public static dream_save_data gameData;
     }
 }

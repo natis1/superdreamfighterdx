@@ -6,7 +6,7 @@ namespace dreams
     public static class version_info
     {
         public const int SETTINGS_VER = 4;
-        public const int SAVE_VER = 1;
+        public const int SAVE_VER = 2;
     }
     
     public class dream_settings : IModSettings
@@ -26,14 +26,32 @@ namespace dreams
     
     public class dream_save_data : IModSettings
     {
+        public void reset()
+        {
+            BoolValues.Clear();
+            IntValues.Clear();
+            FloatValues.Clear();
+            StringValues.Clear();
+
+            soulDreamFails = 0;
+            falseDreamFails = 0;
+            kinDreamFails = 0;
+
+            soulDreamLevel = 1;
+            falseDreamLevel = 1;
+            kinDreamLevel = 1;
+            
+            settingsVersion = version_info.SAVE_VER;
+        }
+
+        public int soulDreamLevel { get => GetInt(); set => SetInt(value); }
+        public int kinDreamLevel { get => GetInt(); set => SetInt(value); }
+        public int falseDreamLevel { get => GetInt(); set => SetInt(value); }
         
-        
-        public int soulDreamLevel;
-        public int kinDreamLevel;
-        public int falseDreamLevel;
-        
-        public int soulDreamFails;
-        public int falseDreamFails;
-        public int kinDreamFails;
+        public int soulDreamFails { get => GetInt(); set => SetInt(value); }
+        public int falseDreamFails { get => GetInt(); set => SetInt(value); }
+        public int kinDreamFails { get => GetInt(); set => SetInt(value); }
+
+        public int settingsVersion { get => GetInt(); private set => SetInt(value); }
     }
 }
