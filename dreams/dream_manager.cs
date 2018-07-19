@@ -4,6 +4,7 @@ using Modding;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+// ReSharper disable UnusedMember.Global Everything here is used implicitly if not explicitly
 
 namespace dreams
 {
@@ -15,12 +16,15 @@ namespace dreams
 
         private soul_dream soulDream = null;
         private false_dream falseDream = null;
+        private kin_dream kinDream = null;
 
         private const int FC_DREAMS_PER_LEVEL = 10;
+        private const int KIN_DREAMS_PER_LEVEL = 25;
 
         private int damage;
 
         private int currentDream = 0;
+        private int defeatedDreamReward = 0;
         
         private void OnDestroy()
         {
@@ -103,21 +107,27 @@ namespace dreams
 
         }
 
-        private static IEnumerator addDreamsDelay(int multiplier, int level)
+        private IEnumerator addDreamsDelay()
         {
-            yield return new WaitForSeconds(4f);
             yield return new WaitForFinishedEnteringScene();
             yield return new WaitForSeconds(0.3f);
             
-            PlayerData.instance.dreamOrbs += (level * multiplier);
-            PlayerData.instance.dreamOrbsSpent -= (level * multiplier);
-            if (global_vars.gameData.falseDreamLevel > 0)
-                EventRegister.SendEvent("DREAM ORB COLLECT");
+            PlayerData.instance.dreamOrbs += (defeatedDreamReward);
+            PlayerData.instance.dreamOrbsSpent -= (defeatedDreamReward);
+            EventRegister.SendEvent("DREAM ORB COLLECT");
+
+            defeatedDreamReward = 0;
         }
 
         private void kinUpdate()
         {
+            if (kinDream.kinController.cachedHealthManager.hp > 0) return;
             
+            currentDream = 0;
+            log("Good job on beating level " + global_vars.gameData.kinDreamLevel);
+            defeatedDreamReward = global_vars.gameData.kinDreamLevel * KIN_DREAMS_PER_LEVEL;
+            global_vars.gameData.kinDreamLevel++;
+            global_vars.gameData.kinDreamFails = 0;
         }
         
 
@@ -139,6 +149,10 @@ namespace dreams
                 return;
             }
 
+            if (defeatedDreamReward != 0)
+            {
+                StartCoroutine(addDreamsDelay());
+            }
             currentDream = 0;
 
         }
@@ -192,8 +206,8 @@ namespace dreams
             }
 
             yield return null;
-            lostKin.PrintSceneHierarchyTree("lostkin.txt");
-
+            kinDream = new kin_dream(lostKin, global_vars.gameData.kinDreamLevel);
+            StartCoroutine(displayEnemyLevel(global_vars.gameData.kinDreamLevel, Color.red));
             currentDream = 4;
         }
 
@@ -235,7 +249,7 @@ namespace dreams
             falseDream.restoreOrigValues();
             currentDream = 0;
             log("Good job on beating level " + global_vars.gameData.falseDreamLevel);
-            StartCoroutine(addDreamsDelay(global_vars.gameData.falseDreamLevel, FC_DREAMS_PER_LEVEL));
+            defeatedDreamReward = global_vars.gameData.kinDreamLevel * KIN_DREAMS_PER_LEVEL;
             global_vars.gameData.falseDreamLevel++;
             global_vars.gameData.falseDreamFails = 0;
         }

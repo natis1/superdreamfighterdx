@@ -55,6 +55,7 @@
   <ItemGroup>
     <Compile Include="dream_manager.cs" />
     <Compile Include="dream_settings.cs" />
+    <Compile Include="dream_stun_manager.cs" />
     <Compile Include="false_dream.cs" />
     <Compile Include="global_vars.cs" />
     <Compile Include="kin_dream.cs" />
