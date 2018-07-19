@@ -123,6 +123,7 @@ namespace dreams
             
 
             kinStunner = kinGuy.GetOrAddComponent<dream_stun_manager>();
+            kinStunner.enemyHM = kinGuy.GetComponent<HealthManager>();
             kinStunner.fastStunTimeoutTime = STUN_TIMEOUT;
             kinStunner.hitsToFastStun = hitsToFastStun;
             kinStunner.hitsToStun = hitsToStun;
@@ -194,6 +195,8 @@ namespace dreams
             hitsToStun = (int)(NORMAL_HITS_TO_STUN * stunMod);
 
             maxHealth = (int) (kinGuy.GetComponent<HealthManager>().hp * healthMod);
+            
+            log("Max health is " + maxHealth + ". Will stun after " + hitsToStun + " hits.");
         }
         
         private static void log(string str)

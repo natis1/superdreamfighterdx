@@ -14,6 +14,7 @@ namespace dreams
         public string[] validStunStates;
         public PlayMakerFSM stunFSM;
         public string stunStateName;
+        public HealthManager enemyHM;
 
         public CustomEnemySpeed speed;
 
@@ -21,7 +22,7 @@ namespace dreams
         public int hitsToFastStun;
         public float fastStunTimeoutTime;
 
-        private int lastDamage;
+        private int lastHP;
         private int lastHitDamage;
         private bool didTakeDamage = false;
         private int stunCounter;
@@ -32,9 +33,11 @@ namespace dreams
         private void Start()
         {
             log("Starting dream stun manager");
-            lastDamage = speed.damageDone;
+            lastHP = enemyHM.hp;
             stunCounter = 0;
             ModHooks.Instance.HitInstanceHook += playerHitTracker;
+            
+            log("Started dream stun manager without any errors... Yeah right");
         }
 
         private void OnDestroy()
@@ -44,8 +47,11 @@ namespace dreams
 
         private IEnumerator autoStunRoutine()
         {
+            
             if (validStunStates == null)
             {
+                ruinedFastStun = false;
+                timeSinceLastHit = 0f;
                 stunFSM.SetState(stunStateName);
             }
             else
@@ -59,6 +65,8 @@ namespace dreams
                     string s = stunStateChecker.ActiveStateName;
                     if (validStunStates.All(t => s != t)) yield return null;
                     
+                    ruinedFastStun = false;
+                    timeSinceLastHit = 0f;
                     stunFSM.SetState(stunStateName);
                     yield break;
                 }
@@ -71,28 +79,36 @@ namespace dreams
         {
             if ((stunCounter >= hitsToFastStun && !ruinedFastStun) || stunCounter >= hitsToStun)
             {
-                stunFSM.SetState(stunStateName);
+                //stunFSM.SetState(stunStateName);
                 stunCounter = 0;
-                //StartCoroutine(autoStunRoutine());
+                StartCoroutine(autoStunRoutine());
             }
             
-            timeSinceLastHit += Time.deltaTime;
+            if (stunCounter > 0)
+                timeSinceLastHit += Time.deltaTime;
+            
             if (timeSinceLastHit > fastStunTimeoutTime)
             {
                 ruinedFastStun = true;
             }
             
-            if (lastDamage >= speed.damageDone) return;
-            lastHitDamage = speed.damageDone - lastDamage;
-            lastDamage = speed.damageDone;
+            if (lastHP <= enemyHM.hp) return;
+            
+            
+            lastHitDamage = lastHP - enemyHM.hp;
+            lastHP = enemyHM.hp;
             didTakeDamage = true;
         }
 
         private HitInstance playerHitTracker(Fsm owner, HitInstance hit)
         {
-            if (!didTakeDamage) return hit;
+            //log("kin hp is " + enemyHM.hp);
             
-            log("Hit enemy and did " + lastHitDamage + " dmg with a " + hit.AttackType.ToString());
+            if (!didTakeDamage) return hit;
+
+            timeSinceLastHit = 0;
+            
+            //log("Hit enemy and did " + lastHitDamage + " dmg with a " + hit.AttackType.ToString());
             
             didTakeDamage = false;
             
